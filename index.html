@@ -1,0 +1,502 @@
+
+<h2 class="sr-only">Сравнение подрядчиков по созданию корпоративной базы знаний с ИИ-ассистентом. </h2>
+
+<style>
+  .dash { padding: 1rem 0 2rem; }
+  .sort-note { font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 1rem; padding: 6px 10px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); border-left: 2px solid var(--color-border-secondary); }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
+  .flt { font-size: 12px; padding: 5px 12px; border-radius: 20px; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-secondary); color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+  .flt.active { background: #185FA5; color: #B5D4F4; border-color: #185FA5; }
+  .flt:hover:not(.active) { border-color: var(--color-border-primary); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; cursor: pointer; transition: border-color 0.15s; position: relative; }
+  .card:hover { border-color: var(--color-border-primary); }
+  .card.selected { border: 1.5px solid #185FA5; }
+  .card.hidden { display: none; }
+  .card.warn-card { border-left: 3px solid #E24B4A; }
+  .card.new-card { border-top: 2px solid #185FA5; }
+  .card-header { margin-bottom: 10px; }
+  .card-title-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; flex-wrap: wrap; }
+  .company { font-size: 15px; font-weight: 700; color: var(--color-text-primary); }
+  .price-num { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: 4px; padding: 2px 6px; white-space: nowrap; }
+  .card-meta-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .type-badge { font-size: 11px; padding: 3px 8px; border-radius: 10px; white-space: nowrap; }
+  .status-tag { font-size: 10px; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+  .badge-kms { background: #E1F5EE; color: #0F6E56; }
+  .badge-ai { background: #E6F1FB; color: #185FA5; }
+  .badge-platform { background: #EEEDFE; color: #3C3489; }
+  .badge-integrator { background: #F1EFE8; color: #5F5E5A; }
+  .badge-light { background: #FAEEDA; color: #854F0B; }
+  .desc { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 10px; line-height: 1.5; }
+  .sort-reason { font-size: 11px; color: #185FA5; background: #E6F1FB; border-radius: 4px; padding: 4px 8px; margin-bottom: 10px; line-height: 1.4; font-style: italic; border-left: 2px solid #378ADD; }
+  .pills { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+  .pill { font-size: 11px; padding: 2px 7px; border-radius: 4px; border: 0.5px solid var(--color-border-tertiary); color: var(--color-text-secondary); }
+  .pill.yes { border-color: #9FE1CB; background: #E1F5EE; color: #0F6E56; }
+  .pill.no { border-color: #F7C1C1; background: #FCEBEB; color: #A32D2D; }
+  .pill.warn { border-color: #FAC775; background: #FAEEDA; color: #854F0B; }
+  .price-section { margin-top: 8px; padding-top: 8px; border-top: 0.5px solid var(--color-border-tertiary); }
+  .price-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px; }
+  .price-label { font-size: 11px; color: var(--color-text-tertiary); min-width: 80px; }
+  .price-val { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .stars { display: flex; gap: 2px; }
+  .star { width: 10px; height: 10px; border-radius: 50%; }
+  .star.on { background: #185FA5; }
+  .star.off { background: var(--color-border-tertiary); }
+  .detail-panel { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem; margin-top: 1rem; display: none; }
+  .detail-panel.open { display: block; }
+  .detail-title { font-size: 16px; font-weight: 500; margin-bottom: 14px; color: var(--color-text-primary); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .detail-block { background: var(--color-background-primary); border-radius: var(--border-radius-md); padding: 10px 12px; border: 0.5px solid var(--color-border-tertiary); }
+  .detail-block-label { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 4px; }
+  .detail-block-val { font-size: 13px; color: var(--color-text-primary); line-height: 1.4; }
+  .pricing-table { background: var(--color-background-primary); border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); overflow: hidden; margin-bottom: 10px; }
+  .pricing-table-title { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); padding: 8px 12px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .pricing-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 12px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .pricing-row:last-child { border-bottom: none; }
+  .pricing-row-label { font-size: 12px; color: var(--color-text-secondary); }
+  .pricing-row-val { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .pricing-row-val.accent { color: #185FA5; }
+  .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .pros, .cons { background: var(--color-background-primary); border-radius: var(--border-radius-md); padding: 10px 12px; border: 0.5px solid var(--color-border-tertiary); }
+  .pros-label { font-size: 11px; color: #0F6E56; margin-bottom: 6px; font-weight: 500; }
+  .cons-label { font-size: 11px; color: #A32D2D; margin-bottom: 6px; font-weight: 500; }
+  .pro-item, .con-item { font-size: 12px; color: var(--color-text-secondary); padding: 2px 0 2px 12px; position: relative; line-height: 1.4; }
+  .pro-item::before { content: ''; position: absolute; left: 0; top: 7px; width: 5px; height: 5px; border-radius: 50%; background: #1D9E75; }
+  .con-item::before { content: ''; position: absolute; left: 0; top: 7px; width: 5px; height: 5px; border-radius: 50%; background: #E24B4A; }
+  .ask-btn { margin-top: 12px; font-size: 12px; }
+  .summary-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; }
+  .metric-label { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 3px; }
+  .metric-val { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+  .section-label { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+  .close-btn { float: right; font-size: 13px; color: var(--color-text-tertiary); cursor: pointer; padding: 2px 6px; }
+  .close-btn:hover { color: var(--color-text-primary); }
+  .warning-note { background: #FCEBEB; border: 0.5px solid #F7C1C1; border-radius: var(--border-radius-md); padding: 8px 12px; font-size: 12px; color: #A32D2D; margin-bottom: 10px; }
+  @media (max-width: 600px) {
+    .detail-grid, .pros-cons { grid-template-columns: 1fr; }
+    .summary-bar { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+
+<div class="dash">
+  <div class="summary-bar">
+    <div class="metric"><div class="metric-label">Всего подрядчиков</div><div class="metric-val" id="cnt-total">10</div></div>
+    <div class="metric"><div class="metric-label">On-Premise</div><div class="metric-val" id="cnt-onprem">9</div></div>
+    <div class="metric"><div class="metric-label">Готовые решения</div><div class="metric-val" id="cnt-ready">9</div></div>
+    <div class="metric"><div class="metric-label">Известна цена</div><div class="metric-val" id="cnt-priced">5</div></div>
+  </div>
+
+   <div class="section-label">Фильтр по типу</div>
+  <div class="filters">
+    <button class="flt active" onclick="filter(this,'all')">Все</button>
+    <button class="flt" onclick="filter(this,'kms')">KMS-система</button>
+    <button class="flt" onclick="filter(this,'ai')">ИИ-платформа</button>
+    <button class="flt" onclick="filter(this,'platform')">Мегаплатформа</button>
+    <button class="flt" onclick="filter(this,'integrator')">Интегратор</button>
+    <button class="flt" onclick="filter(this,'onprem')" style="margin-left:auto">Только On-Premise</button>
+    <button class="flt" onclick="filter(this,'priced')">Есть цена</button>
+  </div>
+
+  <div class="grid" id="card-grid"></div>
+  <div class="detail-panel" id="detail-panel">
+    <span class="close-btn" onclick="closeDetail()">закрыть</span>
+    <div class="detail-title" id="d-title"></div>
+    <div id="d-warning"></div>
+    <div id="d-pricing"></div>
+    <div class="detail-grid" id="d-grid"></div>
+    <div class="pros-cons" id="d-pros-cons"></div>
+    <button class="flt ask-btn" onclick="askMore()">Спросить подробнее ↗</button>
+  </div>
+</div>
+
+<script>
+/*
+  СОРТИРОВКА ПО ЦЕНЕ — логика и обоснование:
+
+  1. TEAMLY          1,2 млн ₽ разово     — прозрачная цена, минимальный порог входа
+  2. DocsAI          ~1,8 млн ₽/год       — самая низкая известная цена подписки
+  3. Minerva         ~0,5–3 млн ₽         — оценка по аналогам, бессрочные лицензии
+  4. Сбер Бизнес Софт 2,5 млн ₽ 1-й год — реальное КП, но только облако (особый случай)
+  5. Just AI         ~0,5–5 млн ₽         — оценка, пилот дешёвый, полный проект дороже
+  6. L2U InKnowledge от 4,75 млн ₽        — реальные цены: лицензия + AI + создание БЗ + LLM
+  7. Naumen KMS      до 10 млн ₽          — оценка, тяжёлое enterprise-внедрение
+  8. GigaChat Сбер   от десятков млн ₽    — индивидуально, известно что дорого
+  9. РДТЕХ/AI-Solver 2–100 млн ₽          — огромный разброс, верхний предел — в конец
+  10. MWS AI (МТС)   2–70 млн ₽           — огромный разброс, нижний предел меньше РДТЕХ
+     (MWS ставим после РДТЕХ т.к. верхний предел 70 млн vs 100 млн у РДТЕХ,
+      но оба в конце из-за неопределённости диапазона)
+*/
+
+const vendors = [
+  /* ─── #1 по цене: 600 тыс./год или 1,2 млн ₽ разово — прозрачная минимальная цена ─── */
+
+  {
+    id: 'teamly', name: 'TEAMLY (QSOFT)', type: 'kms', typeName: 'KMS-система',
+    isNew: false,
+    desc: 'Корпоративная база знаний с AI-ассистентом. Хорош для быстрого старта. Не работает с картинками. Возможна интеграция с Битрикс24.',
+    sortReason: '#1 по цене: одна из самых прозрачных цен в выборке.',
+    onprem: true, ready: true, aiLayer: true, priced: true, warnCard: false,
+    priceShort: '600 тыс./год или <br> 1,2 млн ₽ бессрочно (50 польз.) ',
+    fit: 3,
+    warnTags: ['только текст'],
+    tags: ['On-Premise', 'Известна цена', 'Реестр РФ', 'Битрикс24'],
+    clients: 'Интерлизинг и др. (лучшая база знаний RUWARD 2023)',
+    start: 'от 1–2 недель',
+    features: 'База знаний + AI-поиск + AI-ассистент + обучение + задачи',
+    stack: 'Собственная платформа QSOFT, интеграция с Битрикс24',
+    warning: 'Не работает с изображениями — только текст. Если база знаний содержит схемы, чертежи или фото — критическое ограничение.',
+    pricing: [
+      { label: 'Годовая лицензия', val: '600 000 ₽/год', accent: false, note: '50 польз. вкл. техподдержку и обновления' },
+      { label: 'Бессрочная лицензия', val: '1 200 000 ₽', accent: true, note: 'разово' },
+      { label: 'Техподдержка со 2-го года', val: '360 000 ₽/год', accent: false, note: 'при бессрочной лицензии' },
+    ],
+    pros: ['Единственный с открытой ценой (кроме L2U)', 'Быстрый запуск', 'Понятный интерфейс', 'Интеграция с Битрикс24'],
+    cons: ['Не работает с картинками', 'Не полноценная enterprise KMS', 'Нет методологии управления знаниями', 'Ограничен для 500+ пользователей']
+  },
+  
+    /* ─── #2 по цене: ~1,8 млн ₽/год подписка — минимальная из всех известных цен ───  */
+  {
+    id: 'docsai', name: 'Docs AI', type: 'ai', typeName: 'ИИ-платформа',
+    isNew: true,
+    desc: 'Готовая платформа с ИИ-ассистентом, работающая с любыми форматами данных включая изображения. Детали по внедрению уточняются после демо.',
+    sortReason: '#2 по цене: наименьшая ежемесячная стоимость подписки.',
+    onprem: true, ready: true, aiLayer: true, priced: false, warnCard: false,
+    priceShort: '150 тыс. ₽/мес. (~1,8 млн ₽/год),<br>  точный КП после демо',
+    fit: 3,
+    tags: ['On-Premise', 'Любые форматы', 'Изображения', 'Любые LLM', 'Подписка'],
+    clients: 'Уточняется после демо',
+    start: 'Уточняется',
+    features: 'База знаний + ИИ-ассистент + работа с изображениями + подключение любых LLM-моделей',
+    stack: 'Поддержка любых форматов данных (текст, PDF, изображения); гибкое подключение LLM-моделей',
+    warning: null,
+    pricing: [
+      { label: 'Подписка', val: '150 000 ₽/мес.', accent: false, note: 'ориентировочно' },
+      { label: 'Итого в год', val: '~1 800 000 ₽/год', accent: true, note: 'точный КП после демо/тестирования' },
+    ],
+    pros: ['Самая низкая известная цена', 'Быстрое развёртывание', 'Работает с изображениями и любыми форматами', 'Гибкое подключение любых LLM-моделей'],
+    cons: ['Нет детализации по внедрению до демо-тестирования', 'Мало публичных кейсов', 'Неизвестна глубина KMS-функциональности', 'Подписочная модель — нет бессрочного варианта']
+  },
+
+  
+
+  /* ─── #3 по цене: до 3 млн ₽ — оценка на основе бессрочных лицензий и аналогов ─── */
+  {
+    id: 'minerva', name: 'Minerva Knowledge', type: 'kms', typeName: 'KMS-система',
+    isNew: false,
+    desc: 'Система управления знаниями с AI-ассистентом и авторской методологией Minerva Result. Кейсы: QIWI, Уралсиб, Совкомбанк.',
+    sortReason: '#3 по цене: бессрочные лицензии от 10 шт.',
+    onprem: true, ready: true, aiLayer: true, priced: false, warnCard: false,
+    priceShort: 'По запросу, бессрочные лицензии от 10 шт. (~0,5–3 млн ₽)',
+    fit: 4,
+    tags: ['On-Premise', 'Реестр РФ', 'Методология', 'Семантический поиск', 'Бессрочные лицензии'],
+    clients: 'QIWI, Уралсиб, Совкомбанк, Систэм Электрик',
+    start: '5–6 месяцев для 500+ польз.',
+    features: 'База знаний + AI Copilot + семантический поиск + аналитика',
+    stack: 'Minervasoft, интеграции с CRM/Service Desk',
+    warning: null,
+    pricing: [
+      { label: 'Оценочная стоимость', val: 'до 3 млн. ₽', accent: true, note: 'точную стоимость предоставят только после demo теста' },
+    ],
+    pros: ['Авторская методология внедрения', 'Бессрочные лицензии (мин. 10 шт.)', 'Награды за импортозамещение', 'Семантический поиск с дек. 2025'],
+    cons: ['Менее известна чем Naumen', 'AI-слой появился недавно', 'Долгое внедрение для крупных', 'Нет открытых цен']
+  },
+
+  /* ─── #4 по цене: 2,5 млн ₽ первый год — реальное КП, но только облако (особый случай) ─── */
+  {
+    id: 'sbs', name: 'Сбер Бизнес Софт', type: 'light', typeName: 'Лёгкое решение',
+    isNew: false,
+    desc: 'AI-ассистент на базе GigaChat. Реальное КП: 2,5 млн ₽. Только облако — не подходит для внутреннего контура.',
+    sortReason: '#4 по цене: реальная известная цена.',
+    onprem: false, ready: true, aiLayer: true, priced: true, warnCard: true,
+    priceShort: '2,5 млн ₽ (разработка) + 185 631 ₽/год (лицензии)',
+    fit: 1,
+    tags: ['Только облако', 'GigaChat MAX', 'До 50 сценариев', 'До 600 стр. документов', 'Быстрый старт'],
+    clients: 'МСБ, небольшие компании',
+    start: '1–2 месяца',
+    features: 'Чат-бот + RAG + база знаний (ручное обновление) + Jivo интеграция',
+    stack: 'GigaChat MAX, платформа СБС, Jivo',
+    warning: 'Критическое ограничение: только облачная версия. On-premise установка не предусмотрена. Для задачи внутреннего контура — не подходит.',
+    pricing: [
+      { label: 'Разработка (разово)', val: '2 314 369 ₽', accent: false, note: 'настройка до 50 FAQ-сценариев' },
+      { label: 'Лицензии + GigaChat MAX', val: '185 631 ₽/год', accent: false, note: '194 400 000 токенов, 600 диалогов/мес.' },
+      { label: 'Итого первый год', val: '2 500 000 ₽', accent: true, note: '' },
+    ],
+    pros: ['Единственный с реальным детальным КП', 'Быстрое внедрение', 'Готовая точность >85%'],
+    cons: ['Только облако — НЕ подходит для внутреннего контура', 'База знаний обновляется вручную', 'Нет автоинтеграции с системами', 'Максимум 600 стр. документов']
+  },
+
+  /* ─── #5 по цене: до 5 млн ₽ — оценка; пилот дешевле, полный проект дороже ─── */
+  {
+    id: 'justai', name: 'Just AI (Jay Knowledge Hub)', type: 'ai', typeName: 'ИИ-платформа',
+    isNew: false,
+    desc: 'GenAI-платформа с RAG-технологией и точностью ответов 96%. Быстрый пилот за 2 недели. Синхронизация с Confluence.',
+    sortReason: '#5 по цене: полное корпоративное внедрение может быть дороже.',
+    onprem: true, ready: true, aiLayer: true, priced: false, warnCard: false,
+    priceShort: 'Корпоративные тарифы по запросу (~0,5–5 млн ₽)',
+    fit: 4,
+    tags: ['On-Premise / облако', 'RAG', '96% точность', 'Пилот 2 нед.', 'Confluence sync'],
+    clients: 'Кейсы в банках, HR, клиентском сервисе',
+    start: 'от 2 недель (пилот)',
+    features: 'Jay Knowledge Hub + RAG + мультиагентная платформа + Jay Guard',
+    stack: 'Собственные LLM, поддержка разных моделей, партнёрства со Сбером и МТС',
+    warning: null,
+    pricing: [
+      { label: 'Оценочная стоимость', val: 'до 5 млн. ₽', accent: true, note: 'точную стоимость предоставят только после demo теста' },
+    ],
+    pros: ['Самый быстрый старт — пилот за 2 нед.', '96% точность ответов', 'Современный GenAI-подход', 'Интеграция с Confluence'],
+    cons: ['Классическая KMS-часть слабее Naumen', 'Нужна методологическая работа отдельно', 'Ценообразование закрыто']
+  },
+
+  /* ─── #6 по цене: от 4,75 млн ₽ на старт — реальные цены из КП; учтены лицензия + AI + создание БЗ + LLM ─── */
+  {
+    id: 'l2u', name: 'L2U InKnowledge (BSS)', type: 'kms', typeName: 'KMS-система',
+    isNew: false,
+    desc: 'AI-портал с базой знаний, RAG, подключением к любой LLM, суммаризатором и автоклассификатором. Продукт BSS с 2016 года.',
+    sortReason: '#6 по цене: реальные цены, самая прозрачная детализация.',
+    onprem: true, ready: true, aiLayer: true, priced: true, warnCard: false,
+    priceShort: 'от 4,75 млн. ₽ (далее 1,525 млн./год на 50 польз.) до 6,325 млн ₽ полный пакет',
+    fit: 5,
+    tags: ['On-Premise', 'Любая LLM', 'Реестр РФ', 'No-code', 'RAG', '20 зап./мин', '24 ГБ видеокарты'],
+    clients: 'Аэрофлот, Уральские Авиалинии, ФНС, Минцифры, Газпромбанк Автолизинг, Teleperformance, OMK',
+    start: 'от 1 недели',
+    features: 'База знаний + RAG + AI-помощник + суммаризатор + автоклассификатор + API',
+    stack: 'Собственная платформа, коннекторы к GigaChat / YandexGPT / OpenAI / DeepSeek / LLaMA и др. LLM в контуре на видеокартах 24 ГБ (20 запросов/мин)',
+    warning: null,
+    pricing: [
+      { label: 'Создание базы знаний + обучение', val: '600 000 – 800 000 ₽', accent: false, note: 'разово' },
+      { label: 'Развёртывание LLM в контуре', val: '1 100 000 – 1 200 000 ₽', accent: false, note: 'установка, настройка, промпты' },
+      { label: 'Техподдержка', val: 'входит в лицензию', accent: false, note: '+ часы консультаций' },
+      { label: 'Мин. пакет лицензий', val: '375 000 ₽/год', accent: false, note: '50 именных пользователей' },
+      { label: 'AI-модуль (подписка)', val: '1 150 000 ₽', accent: false, note: 'ежегодно' },
+      { label: 'Полная лицензия (разово)', val: '1 125 000 ₽', accent: false, note: 'бессрочно' },
+      { label: 'AI-модуль (разово)', val: '3 200 000 ₽', accent: true, note: 'бессрочно' },
+    ],
+    pros: ['Реальные цены известны', 'Быстрый старт от 1 недели', 'Любая LLM включая локальные в контуре', 'Широкая интеграция через API', 'Клиенты в госсекторе и авиации'],
+    cons: ['Нет методологии управления знаниями как у Naumen', 'LLM в контуре — дополнительные 1,1–1,2 млн ₽', 'Производительность LLM: 20 запросов/мин на 24 ГБ карту']
+  },
+
+  /* ─── #7 по цене: до 10 млн ₽ по оценке — зрелый enterprise, тяжёлое внедрение ─── */
+  {
+    id: 'naumen', name: 'Naumen KMS', type: 'kms', typeName: 'KMS-система',
+    isNew: false,
+    desc: 'Зрелая система управления знаниями с AI-помощником, методологией внедрения и 500+ проектов с 2001 года.',
+    sortReason: '#7 по цене: самый дорогой среди KMS-решений.',
+    onprem: true, ready: true, aiLayer: true, priced: false, warnCard: false,
+    priceShort: 'По запросу (~1–10 млн ₽)',
+    fit: 5,
+    tags: ['On-Premise', 'Реестр РФ', 'LMS включена', 'Методология', 'Миграция с Confluence'],
+    clients: 'Газпромбанк, QIWI, Совкомбанк, Авито, Ozon, Ростелеком, Яндекс',
+    start: '5–12 недель',
+    features: 'KMS + LMS + AI-помощник + аналитика + портал самообслуживания',
+    stack: 'Java Spring, Elasticsearch, React, PostgreSQL/Oracle',
+    warning: null,
+    pricing: [
+      { label: 'Оценочная стоимость', val: 'до 10 млн. ₽', accent: true, note: 'точную стоимость предоставят только после demo теста' },
+    ],
+    pros: ['Самый зрелый KMS в РФ', 'Методология и консалтинг по знаниям в комплекте', 'Контент-менеджеры от Naumen на старте', 'Огромная клиентская база'],
+    cons: ['Исторический фокус на контакт-центры', 'Тяжёлое и дорогое внедрение', 'Цены только по запросу']
+  },
+
+  /* ─── #8 по цене: от десятков млн ₽ — индивидуально, нижняя граница выше всех KMS ─── */
+  {
+    id: 'gigachat', name: 'GigaChat Enterprise (Сбер)', type: 'platform', typeName: 'Мегаплатформа',
+    isNew: false,
+    desc: 'Корпоративная ИИ-платформа для создания AI-агентов на ваших серверах. 200 часов консалтинга включено. Базу знаний нужно строить отдельно.',
+    sortReason: '#8 по цене: индивидуальное ценообразование, нижняя граница выше всех KMS-решений.',
+    onprem: true, ready: true, aiLayer: true, priced: false, warnCard: false,
+    priceShort: 'Индивидуально; enterprise — от десятков млн ₽/год',
+    fit: 2,
+    tags: ['On-Premise', 'Безлимит пользователей', 'Российская LLM', 'Безопасность', '200 ч консалтинга'],
+    clients: 'Крупнейшие компании РФ в экосистеме Сбера',
+    start: 'Индивидуально',
+    features: 'ИИ-агенты + цифровые сотрудники + ролевая модель + файлы до 5 ГБ',
+    stack: 'GigaChat-2 / Pro / Max, собственные модели Сбера',
+    warning: null,
+    pricing: [],
+    pros: ['Максимальный уровень безопасности', 'Безлимитные пользователи и токены', 'Сильная экосистема Сбера', 'Российская LLM'],
+    cons: ['База знаний — отдельный вопрос на пресейле', 'Самый дорогой вариант', 'Подходит если уже в экосистеме Сбера']
+  },
+
+
+  /* ─── #9 по цене: 2–70 млн ₽ — разброс чуть меньше РДТЕХ, но KMS нет ─── */
+  {
+    id: 'mws', name: 'MWS AI (МТС)', type: 'platform', typeName: 'Мегаплатформа',
+    isNew: false,
+    desc: 'Enterprise-платформа для AI-агентов с no-code конструктором. Инвестиции МТС — 4 млрд ₽. База знаний ожидается как внешний источник.',
+    sortReason: '#9 по цене: KMS нужно строить отдельно = добавляет скрытые расходы.',
+    onprem: true, ready: true, aiLayer: true, priced: false, warnCard: false,
+    priceShort: '2–70 млн ₽ (большой разброс в зависимости от масштаба)',
+    fit: 2,
+    tags: ['On-Premise / контур', 'No-code конструктор', 'Cotype LLM', 'Готовые ассистенты', 'Партнёр Синимекс'],
+    clients: 'МТС Банк, финансовый сектор, здравоохранение',
+    start: 'Индивидуально',
+    features: 'AI-агенты + мультиагентные системы + синтез/распознавание речи + BI',
+    stack: 'Cotype Pro 2.5, Cotype VL, любые LLM по запросу, MCP-протокол',
+    warning: null,
+    pricing: [
+      { label: 'Диапазон цен', val: '2 – 70 млн ₽', accent: true, note: 'зависит от масштаба и сценариев' },
+      { label: 'Оценка Axenix/МГУ (3 года)', val: '200–950 млн ₽', accent: false, note: 'для корпораций и крупных компаний' },
+    ],
+    pros: ['Снижение стоимости разработки в 6 раз (заявлено)', 'Готовые ассистенты HR/юрист/КЦ', 'Сильная техническая платформа', 'Экосистема МТС'],
+    cons: ['База знаний — строить отдельно', 'Огромный разброс цен: 2–70 млн ₽', 'Партнёрское внедрение через Синимекс']
+  },
+
+  /* ─── #10 по цене: 2–100 млн ₽ — огромный разброс, верхний предел максимальный из всех ─── */
+  {
+    id: 'rdtex', name: 'РДТЕХ / AI-Solver', type: 'integrator', typeName: 'Интегратор',
+    isNew: false,
+    desc: 'Интеллектуальная платформа с умным поиском, AI-агентами и чат-ботом по документам. Кейсы в нефтегазе, финансах, производстве.',
+    sortReason: '#10 по цене: кастомный проект без фиксированной стоимости.',
+    onprem: true, ready: false, aiLayer: true, priced: false, warnCard: false,
+    priceShort: 'Пилот от 2 млн ₽; комплекс 10–100 млн ₽',
+    fit: 3,
+    tags: ['On-Premise', 'AI-агенты', 'OCR / Speech-to-Text', 'LLM+RAG+MCP', 'Legacy интеграция'],
+    clients: 'Крупная нефтегазовая компания, финансовые организации, транспорт, производство',
+    start: 'Пилот 2–4 мес., комплекс 8–18 мес.',
+    features: 'Умный поиск + Чат-бот по документам + AI-агенты + коннекторы к Legacy',
+    stack: 'LLM + RAG + MCP + LangChain, OCR, Speech-to-Text, собственные модели',
+    warning: null,
+    pricing: [
+      { label: 'Пилотный проект', val: 'от 2 000 000 ₽', accent: false, note: '2–4 месяца' },
+      { label: 'Прикладные AI-сервисы', val: '2–10 млн ₽', accent: false, note: '1–3 месяца' },
+      { label: 'Комплексное внедрение', val: '10–100 млн ₽', accent: true, note: '8–18 месяцев' },
+    ],
+    pros: ['Мощная AI-платформа с агентами', 'Работает с OCR, сканами, аудио', 'Коннекторы к Legacy/1С/ERP/СЭД', 'Опыт enterprise с 1992 года'],
+    cons: ['Кастомный проект, не коробка', 'Дорого и долго для большого внедрения', 'Нет готового KMS-продукта']
+  }
+];
+let currentFilter = 'all';
+let selectedId = null;
+
+function getBadgeClass(type) {
+  return { kms: 'badge-kms', ai: 'badge-ai', platform: 'badge-platform', integrator: 'badge-integrator', light: 'badge-light' }[type] || '';
+}
+
+function getStatusTags(v) {
+  const tags = [];
+  if (v.isNew) tags.push('<span class="status-tag" style="background:#E6F1FB;color:#185FA5;border:0.5px solid #B5D4F4;">новый</span>');
+  if (v.warnCard) tags.push('<span class="status-tag" style="background:#FCEBEB;color:#A32D2D;border:0.5px solid #F7C1C1;">не On-Premise</span>');
+  if (!v.ready) tags.push('<span class="status-tag" style="background:#FAEEDA;color:#854F0B;border:0.5px solid #FAC775;">кастом</span>');
+  if (v.priced) tags.push('<span class="status-tag" style="background:#E1F5EE;color:#0F6E56;border:0.5px solid #9FE1CB;">цена известна</span>');
+  return tags.join('');
+}
+
+function getFitStars(n) {
+  let s = '';
+  for (let i = 0; i < 5; i++) s += '<div class="star ' + (i < n ? 'on' : 'off') + '"></div>';
+  return s;
+}
+
+function renderCards() {
+  const grid = document.getElementById('card-grid');
+  grid.innerHTML = vendors.map((v, idx) => `
+    <div class="card ${v.warnCard ? 'warn-card' : ''} ${v.isNew ? 'new-card' : ''} ${selectedId === v.id ? 'selected' : ''} ${isHidden(v) ? 'hidden' : ''}" onclick="selectCard('${v.id}')" id="card-${v.id}">
+      <div class="card-header">
+        <div class="card-title-row">
+          <div class="company">${v.name}</div>
+          <div class="price-num">#${idx + 1}</div>
+        </div>
+        <div class="card-meta-row">
+          <div class="type-badge ${getBadgeClass(v.type)}">${v.typeName}</div>
+          ${getStatusTags(v)}
+        </div>
+      </div>
+      <div class="desc">${v.desc}</div>
+      <div class="sort-reason">${v.sortReason}</div>
+      <div class="pills">
+        <span class="pill ${v.onprem ? 'yes' : 'no'}">${v.onprem ? 'On-Premise' : 'Только облако'}</span>
+        <span class="pill ${v.ready ? 'yes' : 'warn'}">${v.ready ? 'Готовое решение' : 'Кастом'}</span>
+        <span class="pill ${v.aiLayer ? 'yes' : 'no'}">ИИ-ассистент</span>
+        <span class="pill ${v.priced ? 'yes' : ''}">${v.priced ? 'Цена известна' : 'Цена по запросу'}</span>
+        ${(v.warnTags || []).map(t => '<span class="pill no">' + t + '</span>').join('')}
+      </div>
+      <div class="price-section">
+        <div class="price-row">
+          <div class="price-label">Ориентир:</div>
+          <div class="price-val">${v.priceShort}</div>
+        </div>
+        <div class="price-row" style="margin-top:4px;">
+          <div class="price-label">Подходит:</div>
+          <div class="stars">${getFitStars(v.fit)}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  updateCounts();
+}
+
+function isHidden(v) {
+  if (currentFilter === 'all') return false;
+  if (currentFilter === 'onprem') return !v.onprem;
+  if (currentFilter === 'priced') return !v.priced;
+  return v.type !== currentFilter;
+}
+
+function filter(btn, f) {
+  currentFilter = f;
+  document.querySelectorAll('.flt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  closeDetail();
+  renderCards();
+}
+
+function updateCounts() {
+  const visible = vendors.filter(v => !isHidden(v));
+  document.getElementById('cnt-total').textContent = visible.length;
+  document.getElementById('cnt-onprem').textContent = visible.filter(v => v.onprem).length;
+  document.getElementById('cnt-ready').textContent = visible.filter(v => v.ready).length;
+  document.getElementById('cnt-priced').textContent = visible.filter(v => v.priced).length;
+}
+
+function selectCard(id) {
+  if (selectedId === id) { closeDetail(); return; }
+  selectedId = id;
+  const v = vendors.find(x => x.id === id);
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('card-' + id).classList.add('selected');
+
+  document.getElementById('d-title').innerHTML = '<span style="font-weight:500">' + v.name + '</span><span class="type-badge ' + getBadgeClass(v.type) + '">' + v.typeName + '</span>' + getStatusTags(v);
+
+  const warnDiv = document.getElementById('d-warning');
+  warnDiv.innerHTML = v.warning ? '<div class="warning-note">' + v.warning + '</div>' : '';
+
+  const pricingDiv = document.getElementById('d-pricing');
+  if (v.pricing.length > 0) {
+    pricingDiv.innerHTML = '<div class="pricing-table"><div class="pricing-table-title">Детализация стоимости</div>' +
+      v.pricing.map(p => '<div class="pricing-row"><div class="pricing-row-label">' + p.label + (p.note ? ' <span style="font-size:10px;color:var(--color-text-tertiary);">— ' + p.note + '</span>' : '') + '</div><div class="pricing-row-val' + (p.accent ? ' accent' : '') + '">' + p.val + '</div></div>').join('') +
+      '</div>';
+  } else {
+    pricingDiv.innerHTML = '';
+  }
+
+  document.getElementById('d-grid').innerHTML = `
+    <div class="detail-block"><div class="detail-block-label">Клиенты</div><div class="detail-block-val">${v.clients}</div></div>
+    <div class="detail-block"><div class="detail-block-label">Старт проекта</div><div class="detail-block-val">${v.start}</div></div>
+    <div class="detail-block"><div class="detail-block-label">Функциональность</div><div class="detail-block-val">${v.features}</div></div>
+    <div class="detail-block"><div class="detail-block-label">Технологии</div><div class="detail-block-val">${v.stack}</div></div>
+  `;
+
+  document.getElementById('d-pros-cons').innerHTML = `
+    <div class="pros"><div class="pros-label">Преимущества</div>${v.pros.map(p => '<div class="pro-item">' + p + '</div>').join('')}</div>
+    <div class="cons"><div class="cons-label">Недостатки</div>${v.cons.map(c => '<div class="con-item">' + c + '</div>').join('')}</div>
+  `;
+
+  const panel = document.getElementById('detail-panel');
+  panel.classList.add('open');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closeDetail() {
+  selectedId = null;
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('detail-panel').classList.remove('open');
+}
+
+function askMore() {
+  if (!selectedId) return;
+  const v = vendors.find(x => x.id === selectedId);
+  sendPrompt('Расскажи подробнее про ' + v.name + ' — что конкретно нужно уточнить на пресейле, какие вопросы задать, и как они подходят для создания внутренней базы знаний с ИИ-ассистентом в закрытом контуре?');
+}
+
+renderCards();
+</script>
